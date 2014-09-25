@@ -38,11 +38,9 @@ module Headhunter
     def detect_used_selectors_in(html)
       document = Nokogiri::HTML(html)
 
-      @unused_selectors.collect do |selector, declarations|
-        bare_selector = bare_selector_from(selector)
-
+      @unused_selectors.map{|s| bare_selector_from(s)}.uniq.collect do |selector, declarations|
         begin
-          selector if document.search(bare_selector).any?
+          selector if document.search(selector).any?
         rescue Nokogiri::CSS::SyntaxError => e
           @error_selectors << selector
           @unused_selectors.delete(selector)
