@@ -1,15 +1,24 @@
 module Headhunter
   class CssRunner
     ASSETS_PATH = 'public/assets'
-
-    def initialize
-      precompile_assets!
-      @css_hunter     = CssHunter.new(stylesheets)
-      @css_validator = CssValidator.new(stylesheets)
+    def initialize(app)
+      @app = ActionDispatch::Integration::Session.new(app)
+      @css_hunter     = CssHunter.new
+      @css_validator = CssValidator.new
+      @fetched_stylesheets = Set.new
     end
 
     def process(url, html)
-      @css_hunter.process(html)
+      document = Nokogiri::HTML(html)
+      stylesheets = document.css("link[rel=stylesheet]").map{|n| n['href']}
+      stylesheets.each{|stylesheet|
+        if !@fetched_stylesheets.include?(stylesheet)
+          @app.get(stylesheet)
+          @css_hunter.add_stylesheet(@app.response.body)
+          @fetched_stylesheets << stylesheet
+        end
+      }
+      @css_hunter.process(document)
       # TODO: maybe we should call @css_validator.validate(html) ?
     end
 
@@ -20,33 +29,5 @@ module Headhunter
       ]
     end
 
-    def clean_up
-      print "Headhunter is removing precompiled assets...".yellow
-      remove_assets!
-      puts " done!".yellow
-    end
-
-    private
-
-    def stylesheets
-      Dir["#{::Rails.root}/#{ASSETS_PATH}/*.css"]
-    end
-
-    def precompile_assets!
-      print "Headhunter is removing eventually existing assets...".yellow
-      remove_assets! # Remove existing assets! This seems to be necessary to make sure that they don't exist twice, see http://stackoverflow.com/questions/20938891
-      sleep 1
-      puts " done!".yellow
-
-      sleep 1
-
-      print "Headhunter is precompiling assets...".yellow
-      system 'rake assets:precompile HEADHUNTER=false &> /dev/null'
-      puts " done!\n".yellow
-    end
-
-    def remove_assets!
-      FileUtils.rm_r ASSETS_PATH if File.exist?(ASSETS_PATH)
-    end
   end
 end

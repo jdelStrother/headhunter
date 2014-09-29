@@ -1,6 +1,6 @@
 module Headhunter
   class HtmlRunner
-    def initialize
+    def initialize(app)
       @html_validator = HtmlValidator.new
     end
 
@@ -12,6 +12,5 @@ module Headhunter
       @html_validator.statistics
     end
 
-    def clean_up ; end
   end
 end

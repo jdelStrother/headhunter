@@ -16,6 +16,10 @@ module Headhunter
         add_css_selectors_from(IO.read(stylesheet))
       end
     end
+    
+    def add_stylesheet(stylesheet)
+      add_css_selectors_from(stylesheet)
+    end
 
     def process(html)
       detect_used_selectors_in(html).each do |selector|
@@ -35,9 +39,8 @@ module Headhunter
       lines.join("\n")
     end
 
-    def detect_used_selectors_in(html)
-      document = Nokogiri::HTML(html)
-
+    def detect_used_selectors_in(document)
+      document = Nokogiri::HTML(document) unless document.is_a?(Nokogiri::HTML::Document)
       @unused_selectors.map{|s| bare_selector_from(s)}.uniq.collect do |selector, declarations|
         begin
           selector if document.search(selector).any?

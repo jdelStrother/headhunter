@@ -5,11 +5,10 @@ module Headhunter
   module Rails
     class Railtie < ::Rails::Railtie
       initializer "headhunter.hijack" do |app|
-        head_hunter = Runner.new(::Rails.root)
+        head_hunter = Runner.new(app)
 
         at_exit do
           head_hunter.report
-          head_hunter.clean_up!
         end
 
         app.middleware.insert(0, Headhunter::Rack::CapturingMiddleware, head_hunter)
