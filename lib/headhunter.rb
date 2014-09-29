@@ -8,4 +8,6 @@ require 'headhunter/runners/html_runner'
 require 'headhunter/runners/css_runner'
 
 module Headhunter
+  mattr_accessor :runner
+  delegate :html_runner, :css_runner, :to=>:runner
 end
