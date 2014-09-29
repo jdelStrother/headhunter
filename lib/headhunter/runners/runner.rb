@@ -17,14 +17,24 @@ module Headhunter
         @runners << self.css_runner
       end
     end
+    
+    def enabled?
+      @enabled.nil? ? (ENV['HEADHUNTER'] == 'true') : @enabled
+    end
+    
+    def enabled=(x)
+      @enabled = x
+    end
 
     def process(url, html)
+      return unless enabled?
       @runners.each do |runner|
         runner.process(url, html)
       end
     end
 
     def report
+      return unless enabled?
       puts @runners.map { |runner| runner.results }.compact.join "\n\n"
     end
   end
