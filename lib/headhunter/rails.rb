@@ -7,11 +7,6 @@ module Headhunter
       initializer "headhunter.hijack" do |app|
         head_hunter = Runner.new(app)
         Headhunter.runner = head_hunter
-
-        at_exit do
-          head_hunter.report
-        end
-
         app.middleware.insert(0, Headhunter::Rack::CapturingMiddleware, head_hunter)
       end
     end
