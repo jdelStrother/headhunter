@@ -6,7 +6,12 @@ module Headhunter
       subject { described_class.new }
 
       it 'returns pseudo classes' do
-        expect(subject.remove_pseudo_classes_from('textarea:not(.something)')).to eq 'textarea'
+        expect(subject.remove_pseudo_classes_from('textarea:focus')).to eq 'textarea'
+      end
+      
+      it 'allows pseudoclasses that nokogiri can handle' do
+        awful_selector = "div.foo:first div::-moz-focus-inner span:nth-child(1) a:active:firsty span.bar:hover:empty"
+        expect(subject.bare_selector_from(awful_selector)).to eq 'div.foo:first div span:nth-child(1) a span.bar:empty'
       end
     end
 
@@ -14,7 +19,7 @@ module Headhunter
       subject { described_class.new }
 
       it 'cleans a selector from stuff like pseudo classes' do
-        expect(subject.bare_selector_from('textarea:not(.something)')).to eq 'textarea'
+        expect(subject.bare_selector_from('textarea:focus')).to eq 'textarea'
       end
     end
 

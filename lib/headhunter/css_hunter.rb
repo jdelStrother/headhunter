@@ -70,9 +70,28 @@ module Headhunter
       # Add more clean up stuff here, e.g. stuff like @keyframe (Deadweight implemented this)?
       remove_pseudo_classes_from(selector)
     end
-
+    
+    
+    Whitelist = %w{empty first first-child first-of-type lang last-child last-of-type not nth-child nth-last-child nth-last-of-type nth-of-type only-child only-of-type root}
+    # In ruby 2 we can test for balanced parentheses
+    # In older ruby, just assume people aren't nesting parentheses in selectors
+    Parentheses = RUBY_VERSION<'2.0' ? '\([^)]*\)' : '\((?>[^()]|(\g<0>))*\)'
+    UnknownPseudoClasses = /
+      ::?                         # opening ':', maybe with a second one for stuff like ::-moz-focus-inner
+      (?!                         # Don't match...
+        (#{Whitelist.join('|')})  # ...our list of functions nokogiri can handle
+        (#{Parentheses})?         # ... optionally with balanced parentheses - eg :nth-child(1)
+        (?=([ :]|$))              # ... that terminates in whitespace, the start of a second pseudoclass, or the end of the selector
+      )
+      [^ :]+                      # Match anything else, up to the next whitespace, the start of another pseudoclass, or the end of the selector
+      (?=([ :]|$))
+    /x
+    
     def remove_pseudo_classes_from(selector)
-      selector.gsub(/:.*/, '')  # input#x:nth-child(2):not(#z.o[type='file'])
+      # Nokgiri handles things like :nth-child(1) just fine, so leave those in.  Strip out the
+      # HTML-specific functions that it doesn't like, such as :hover, ::-moz-focus-inner, etc.
+      selector.gsub(UnknownPseudoClasses, '')
     end
+    
   end
 end
